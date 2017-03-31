@@ -24,15 +24,20 @@ class job(object):
 		self.job_status = requests.get(self.url()).json()
 		return self.job_status
 
+	def output(self):
+		self.wait()		          
+		return self.json['output']
+
 	def wait(self):
 		status=[]
 		while status!='success' and status!='error':
 			self.job_status_json= requests.get(self.endpoint.address + "/rest/job/wait/" + self.json['uuid']).json()
 			status=self.job_status_json['status']
+			self.json = self.job_status_json
 		return 0
 
 
-	def save_all(self,directory):
+	def save_all(self,directory='.'):
 		for k in self.endpoint.outputs.keys():
 			self.save_output(k,directory)
 	
@@ -75,9 +80,9 @@ class endpoint(object):
 	def parameters(self):
 		return self.json['parameters']
 	def inputs(self):
-		return self.json['input_files']
+		return self.json['input_files'] + self.json['input_directories']
 	def outputs(self):
-		return self.json['output_files']
+		return self.json['output_files'] + self.json['output_directories']
 	def url(self):
 		return self.address+"/rest/service/"+self.endpoint
 
