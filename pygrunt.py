@@ -12,9 +12,9 @@ class job(object):
 		if len(files) == 0:
 			files['bogus_empty_name'] = ("", 'content');
 		resp = requests.post(self.endpoint.url(), files=files, data=data)
-		print resp.text
+		# print resp.text
 		self.json = resp.json()
-		print ( self.json )
+		# print ( self.json )
 		self.uuid = self.json['uuid']
 
 	def url(self):
@@ -42,15 +42,15 @@ class job(object):
 			self.save_output(k,directory)
 	
 	def save_output(self,key,directory):
-		print "Saving " + key + " to " + directory
+		# print "Saving " + key + " to " + directory
 		if key in self.data.keys():
 			v = self.data[key]
 			try:
 				r1 = requests.get( self.url() + "/file/" + key )
-				print r1
+				# print r1
 				with open( os.path.join(directory,v), "wb") as code:
 					code.write(r1.content)
-				print 'done'
+				# print 'done'
 			except Exception, e: print e
 
 	   
@@ -65,8 +65,8 @@ class endpoint(object):
 		self.values={}
 
 	def __setattr__(self,key,value):
-		print '--------'
-		print (key, value)
+		# print '--------'
+		# print (key, value)
 		"""Maps attributes to values.
 		Only if we are initialised
 		"""
@@ -91,7 +91,7 @@ class endpoint(object):
 		# print (kwargs)
 		if kwargs:
 			for k,v in kwargs.iteritems():
-				print k,v
+				# print k,v
 				if k in self.parameters():
 					j.data[k] = v
 				if k in self.inputs():
@@ -104,23 +104,23 @@ class endpoint(object):
 			if self.parameters():
 				for i in self.parameters():                   
 					if hasattr(self, i):
-						print 'parameter------ found'
+						# print 'parameter------ found'
 						j.data[i] = getattr(self,i)
-						print i
+						# print i
 			if self.inputs():
 				for i in self.inputs():                  
 					if hasattr(self, i):
-						print 'parameter------ found'
+						# print 'parameter------ found'
 						j.files[i] = open(getattr(self,i),'rb')
 
-						print i
+						# print i
 			if self.outputs():
 				for i in self.outputs():
 					if hasattr(self, i):
-						print 'inputs------ found'
+						# print 'inputs------ found'
 						j.data[i] = getattr(self,i)
 
-						print i
+						# print i
 			j.call(j.data, j.files)
 			return j
 
@@ -161,12 +161,12 @@ class grunt(object):
 		ConnObject=robj.json()
 		filespassed=self.param	 	
 		for k, v in filespassed.iteritems():
-			print k,v
+			# print k,v
 			try:
 				r1 = requests.get( self.address+'/rest/job/'+ConnObject.get('uuid')+'/file/'+k)
 				with open( self.storelocation+v, "wb") as code:
 					code.write(r1.content)
-				print 'done'
+				# print 'done'
 			except Exception, e: print e
 			
 			return 0  
