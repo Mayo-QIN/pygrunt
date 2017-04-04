@@ -1,6 +1,6 @@
 import requests
 import os
-
+import zipfile, StringIO
 
 class job(object):
 	def __init__(self,endpoint):
@@ -19,13 +19,13 @@ class job(object):
 
 	def url(self):
 		return self.endpoint.address + "/rest/job/" + self.json['uuid']
-		
+
 	def status(self):
 		self.job_status = requests.get(self.url()).json()
 		return self.job_status
 
 	def output(self):
-		self.wait()		          
+		self.wait()
 		return self.json['output']
 
 	def wait(self):
@@ -36,11 +36,20 @@ class job(object):
 			self.json = self.job_status_json
 		return 0
 
+	def downloadall(self,directory):
+		try:
+			print (self.url() + "/zip")
+			r = requests.get(self.url() + "/zip", stream=True)
+			z = zipfile.ZipFile(StringIO.StringIO(r.content))
+			z.extractall(directory)
+			# print 'done'
+		except Exception, e: print e
+
 
 	def save_all(self,directory='.'):
 		for k in self.endpoint.outputs.keys():
 			self.save_output(k,directory)
-	
+
 	def save_output(self,key,directory):
 		# print "Saving " + key + " to " + directory
 		if key in self.data.keys():
@@ -53,11 +62,11 @@ class job(object):
 				# print 'done'
 			except Exception, e: print e
 
-	   
+
 class endpoint(object):
 	"""
 	Manage an endpoint
-	"""     
+	"""
 	def __init__(self, address, endpoint):
 		self.address = address
 		self.endpoint = endpoint
@@ -102,13 +111,13 @@ class endpoint(object):
 			return j
 		else:
 			if self.parameters():
-				for i in self.parameters():                   
+				for i in self.parameters():
 					if hasattr(self, i):
 						# print 'parameter------ found'
 						j.data[i] = getattr(self,i)
 						# print i
 			if self.inputs():
-				for i in self.inputs():                  
+				for i in self.inputs():
 					if hasattr(self, i):
 						# print 'parameter------ found'
 						j.files[i] = open(getattr(self,i),'rb')
@@ -140,10 +149,10 @@ class grunt(object):
 
 	def __getattr__(self,key):
 		return self.services[key]
-			
+
 	def description(self):
 		print "I'm a class for this server %s and specifically this %s end point." % (self.address, self.service)
- 
+
 	def submitjob(self):
 		r = requests.post(self.servicecontactlocation, files=self.files, data=self.param)
 		self.r=r
@@ -154,12 +163,12 @@ class grunt(object):
 		ConnObject=robj.json()
 		status = requests.get(self.address+'/rest/job/wait/'+ConnObject.get('uuid'))
 		self.status =status
-		return 0      
+		return 0
 
 	def download(self):
 		robj=self.r
 		ConnObject=robj.json()
-		filespassed=self.param	 	
+		filespassed=self.param
 		for k, v in filespassed.iteritems():
 			# print k,v
 			try:
@@ -168,8 +177,8 @@ class grunt(object):
 					code.write(r1.content)
 				# print 'done'
 			except Exception, e: print e
-			
-			return 0  
+
+			return 0
 
 
 # if __name__ == "__main__":
@@ -180,7 +189,7 @@ class grunt(object):
 #     j.wait()
 #     j.save_output("output", "/tmp/")
 
-	
+
 	# e = endpoint("http://localhost:9901", "copy")
 	# j = e(input="README.md",output="Copy of README.md")
 	# j.wait()
